@@ -703,7 +703,18 @@ func (c *KubeVirtController) execute(key string) error {
 	return syncError
 }
 
-func (c *KubeVirtController) generateInstallStrategyJob(config *operatorutil.KubeVirtDeploymentConfig) (*batchv1.Job, error) {
+func (c *KubeVirtController) generateInstallStrategyJob(infra *v1.ComponentConfig, config *operatorutil.KubeVirtDeploymentConfig) (*batchv1.Job, error) {
+
+	var tolerations []k8sv1.Toleration
+	var affinity *k8sv1.Affinity
+	var nodeSelector map[string]string
+	{
+	}
+	if infra != nil && infra.NodePlacement != nil {
+		affinity = infra.NodePlacement.Affinity
+		nodeSelector = infra.NodePlacement.NodeSelector
+		tolerations = infra.NodePlacement.Tolerations
+	}
 
 	operatorImage := fmt.Sprintf("%s/%s%s%s", config.GetImageRegistry(), config.GetImagePrefix(), VirtOperator, components.AddVersionSeparatorPrefix(config.GetOperatorVersion()))
 	deploymentConfigJson, err := config.GetJson()
@@ -775,6 +786,9 @@ func (c *KubeVirtController) generateInstallStrategyJob(config *operatorutil.Kub
 							},
 						},
 					},
+					Affinity:     affinity,
+					Tolerations:  tolerations,
+					NodeSelector: nodeSelector,
 				},
 			},
 		},
@@ -948,7 +962,7 @@ func (c *KubeVirtController) loadInstallStrategy(kv *v1.KubeVirt) (*install.Stra
 	}
 
 	// 4. execute a job to generate the install strategy for the target version of KubeVirt that's being installed/updated
-	job, err := c.generateInstallStrategyJob(config)
+	job, err := c.generateInstallStrategyJob(kv.Spec.Infra, config)
 	if err != nil {
 		return nil, true, err
 	}
