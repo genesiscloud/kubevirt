@@ -29,7 +29,6 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
-	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	promv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
@@ -2180,7 +2179,7 @@ var _ = Describe("KubeVirt Operator", func() {
 			Expect(job.Spec.Template.Spec.Tolerations).To(Equal(tolerations))
 		})
 
-		table.DescribeTable("should create an install strategy creation job with", func(infra *v1.ComponentConfig) {
+		DescribeTable("should create an install strategy creation job with", func(infra *v1.ComponentConfig) {
 			config := getConfig("registry", "v1.1.1")
 			kvTestData := KubeVirtTestData{}
 			kvTestData.BeforeTest()
@@ -2189,8 +2188,8 @@ var _ = Describe("KubeVirt Operator", func() {
 			_, err := kvTestData.controller.generateInstallStrategyJob(infra, config)
 			Expect(err).NotTo(HaveOccurred())
 		},
-			table.Entry("no component config", nil),
-			table.Entry("no node placement", &v1.ComponentConfig{NodePlacement: nil}),
+			Entry("no component config", nil),
+			Entry("no node placement", &v1.ComponentConfig{NodePlacement: nil}),
 		)
 
 		It("should create an api server deployment with passthrough env vars, if provided in config", func() {
